@@ -1,32 +1,97 @@
 'use strict';
 
 angular.module('app',['ui.router']);
+angular.module('app')
+.config(['$sceDelegateProvider',function ($sceDelegateProvider) {
+
+    $sceDelegateProvider.resourceUrlWhitelist([
+        'self',
+        './data/**'
+    ]);
+
+}]);
+
 'use strict';
-angular.module('app').config(['$stateProvider','$urlRouterProvider',function ($stateProvider,$urlRouterProvider) {
-    $stateProvider.state('main',{
-        url:'/main',
-        templateUrl:'view/main.html',
-        controller:'mainCtrl'
-    }).state('position',{
-        url:'/position/:id',
-        templateUrl:'view/position.html',
-        controller:'positionCtrl'
-    });
+angular.module('app').config(['$stateProvider', '$urlRouterProvider', function ($stateProvider, $urlRouterProvider) {
+    $stateProvider.state('main', {
+        url: '/main',
+        templateUrl: 'view/main.html',
+        controller: 'mainCtrl'
+    }).state('position', {
+        url: '/position/:id',
+        templateUrl: 'view/position.html',
+        controller: 'positionCtrl'
+    })
+      .state('company',{
+          url:'/company',
+          templateUrl:'view/company.html',
+          controller:'companyCtrl'
+      })
     $urlRouterProvider.otherwise('main');
 }]);
 
 
 
 'use strict';
+angular.module('app').controller('companyCtrl',['$scope',function ($scope) {
+
+}]);
+'use strict';
+
+angular.module('app').controller('mainCtrl', ['$scope', 'httpTool' , function($scope, httpTool) {
+    httpTool.getData({
+            url:'/data/positionList.json',
+            method:'get',
+            params:null
+        },function (res) {
+              $scope.list = res;
+        },function (error) {
+
+        });
+}]);
+
+ 'use strict';
+ angular.module('app').controller('positionCtrl', ['$q','$scope', 'httpTool', '$state', function($q,$scope, httpTool, $state) {
+     $scope.isLogin = false;
+     function getPosition(){
+       var def = $q.defer();
+       httpTool.getData({
+           url: 'data/position.json?id' + $state.params.id,
+           method: 'get',
+       }, function(res) {
+           $scope.position = res;
+           def.resolve(res);
+       },function(err){
+          def.reject(err);
+       })
+       return def.promise;
+     }
+
+     function getCompany(id){
+       httpTool.getData({
+         url:'data/company.json?id=' + id,
+         method:'get'
+       },function(res){
+          $scope.company = res;
+       });
+     }
+     getPosition().then(function(obj){
+       getCompany(obj.companyId);
+      // console.log(obj);
+     })
+ }]);
+
+'use strict';
 angular.module('app').directive('appCompany',[function () {
     return{
         restrict:'A',
         replace:true,
-        templateUrl:'./view/template/company.html'
-
+        templateUrl:'./view/template/company.html',
+        scope:{
+          com:'='
+        }
     }
 }]);
-
 
 'use strict';
 angular.module('app').directive('appFoot',[function () {
@@ -62,19 +127,30 @@ angular.module('app').directive('appHeadBar', [function () {
     };
 }]);
 'use strict';
+angular.module('app').directive('appPositionClass',[function () {
+    return{
+        restrict:'A',
+        replace:true,
+        templateUrl:'view/template/positionClass.html'
+    }
+}]);
+'use strict';
 angular.module('app').directive('appPositionInfo',[function () {
     return{
         restrict:'A',
         replace:true,
         templateUrl:'../view/template/positionInfo.html',
         scope:{
-            isActive:'='
+            isActive:'=',
+            isLogin:'=',
+            pos:'='
         },
         link:function ($scope) {
             $scope.imagePath = $scope.isActive?'image/star-active.png':'image/star.png'
         }
     }
 }]);
+
 'use strict';
 angular.module('app').directive('appPositionList',[function () {
     return{
@@ -88,32 +164,41 @@ angular.module('app').directive('appPositionList',[function () {
 }]);
 
 
-'use strict';
+angular.module('app')
+.service('httpTool',['$http',function ($http) {
 
-angular.module('app').controller('mainCtrl',['$scope',function ($scope) {
-    $scope.list = [
-        {
-            id:1,
-            name:"前端开发",
-            imgSrc:'image/company-1.png',
-            companyName:'慕课网',
-            city:"北京",
-            industry:"互联网",
-            time:'2016-11-11 11:11'
-        },
-        {
-            id:2,
-            name:"WEB前端",
-            imgSrc:'image/company-2.png',
-            companyName:'三好网',
-            city:"广州",
-            industry:"互联网",
-            time:'2016-12-12 12:12'
+    this.getData = function (args,success,error) {
+
+        if (args.method == 'post'){
+
+            var data = "";
+            for(var key  in args.params){
+                data += key+'='+args.params[key]+'&'
+            }
+            data = data.slice(0,-1);
+
+            $http({
+
+                url:args.url,
+                method:args.method,
+                headers:{
+                    'Content-Type':'application/x-www-form-urlencoded'
+                },
+                data:data
+            })
+
+        }else if(args.method == 'get' || args.method == 'jsonp') {
+
+            $http({
+                url:args.url,
+                method:args.method,
+                params:args.params
+            }).then(function (res) {
+                success(res.data);
+            }).catch(function (err) {
+                error(err);
+            })
         }
-    ]
-}]);
-
- 'use strict';
-angular.module('app').controller('positionCtrl',['$scope',function ($scope) {
+    };
 
 }]);

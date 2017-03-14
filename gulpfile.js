@@ -61,13 +61,14 @@ gulp.task('clean', function () {
     gulp.src([app.devPath, app.prdPath])
         .pipe($.clean());
 });
+
 gulp.task('serve',['build'],function () {
     $.connect.server({
         root:[app.devPath],
         livereload:true,
-        port:1234
+        port:9999
     });
-    open('http://localhost:1234');
+    open('http://localhost:9999');
     gulp.watch(app.srcPath + 'srcipt/**/*.js',['js']);
     gulp.watch('bower_componnents/**/*',['lib']);
     gulp.watch(app.srcPath + '**/*.html',['html']);
