@@ -1,4 +1,4 @@
-## 使用angular开发一个拉钩webapp简易版
+## 使用Angular.js开发一个拉钩webapp简易版
 [项目演示](http://chaneychan.com/lagouNg/dist/index.html#!/main)
 
 ## 配置
