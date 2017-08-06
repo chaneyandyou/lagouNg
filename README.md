@@ -26,6 +26,7 @@ $ bower install
 ```
 //全局安装gulp
 $ gulp install -g
+
 //启动服务
 $ gulp serve
 ```
